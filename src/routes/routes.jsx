@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
-import Layout from '../components/Layout/Layout';
+import NewLayout from '../components/Layout/NewLayout';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import NewScan from '../pages/NewScan/NewScan';
 import History from '../pages/History/History';
@@ -20,7 +20,7 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <AuthProvider>
-        <Layout />
+        <NewLayout />
       </AuthProvider>
     ),
     children: [

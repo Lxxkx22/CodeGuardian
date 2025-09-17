@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Slider,
 } from '@mui/material';
 import {
   PhotoCamera as PhotoCameraIcon,
@@ -68,6 +69,16 @@ const Settings = () => {
     marketingEmails: false,
   });
   
+  // 界面设置状态
+  const [uiSettings, setUiSettings] = useState({
+    gradientBackground: true,
+    gradientColors: {
+      color1: '#667eea',
+      color2: '#764ba2',
+    },
+    gradientDirection: 135,
+  });
+  
   // 密码更改表单状态
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -90,6 +101,30 @@ const Settings = () => {
     setNotifications({
       ...notifications,
       [e.target.name]: e.target.checked,
+    });
+  };
+  
+  const handleUiSettingChange = (e) => {
+    setUiSettings({
+      ...uiSettings,
+      [e.target.name]: e.target.checked,
+    });
+  };
+  
+  const handleColorChange = (colorKey, value) => {
+    setUiSettings({
+      ...uiSettings,
+      gradientColors: {
+        ...uiSettings.gradientColors,
+        [colorKey]: value,
+      },
+    });
+  };
+  
+  const handleDirectionChange = (event, value) => {
+    setUiSettings({
+      ...uiSettings,
+      gradientDirection: value,
     });
   };
   
@@ -135,6 +170,7 @@ const Settings = () => {
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="设置选项卡">
             <Tab label="个人资料" />
             <Tab label="通知" />
+            <Tab label="界面" />
             <Tab label="账户" />
           </Tabs>
         </Box>
@@ -339,8 +375,137 @@ const Settings = () => {
           </Box>
         </TabPanel>
         
-        {/* 账户选项卡 */}
+        {/* 界面选项卡 */}
         <TabPanel value={tabValue} index={2}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              背景设置
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={uiSettings.gradientBackground}
+                  onChange={handleUiSettingChange}
+                  name="gradientBackground"
+                  color="primary"
+                />
+              }
+              label="启用渐变背景"
+            />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 3 }}>
+              为Dashboard页面启用美丽的渐变背景效果。
+            </Typography>
+            
+            {uiSettings.gradientBackground && (
+              <Box sx={{ ml: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  渐变颜色设置
+                </Typography>
+                
+                <Grid container spacing={3} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" gutterBottom>
+                      起始颜色
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <input
+                        type="color"
+                        value={uiSettings.gradientColors.color1}
+                        onChange={(e) => handleColorChange('color1', e.target.value)}
+                        style={{
+                          width: '50px',
+                          height: '40px',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <TextField
+                        size="small"
+                        value={uiSettings.gradientColors.color1}
+                        onChange={(e) => handleColorChange('color1', e.target.value)}
+                        sx={{ width: '120px' }}
+                      />
+                    </Box>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" gutterBottom>
+                      结束颜色
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <input
+                        type="color"
+                        value={uiSettings.gradientColors.color2}
+                        onChange={(e) => handleColorChange('color2', e.target.value)}
+                        style={{
+                          width: '50px',
+                          height: '40px',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                        }}
+                      />
+                      <TextField
+                        size="small"
+                        value={uiSettings.gradientColors.color2}
+                        onChange={(e) => handleColorChange('color2', e.target.value)}
+                        sx={{ width: '120px' }}
+                      />
+                    </Box>
+                  </Grid>
+                </Grid>
+                
+                <Typography variant="body2" gutterBottom>
+                  渐变方向: {uiSettings.gradientDirection}°
+                </Typography>
+                <Slider
+                  value={uiSettings.gradientDirection}
+                  onChange={handleDirectionChange}
+                  min={0}
+                  max={360}
+                  step={15}
+                  marks={[
+                    { value: 0, label: '0°' },
+                    { value: 90, label: '90°' },
+                    { value: 180, label: '180°' },
+                    { value: 270, label: '270°' },
+                    { value: 360, label: '360°' },
+                  ]}
+                  sx={{ mb: 3 }}
+                />
+                
+                <Box
+                  sx={{
+                    width: '100%',
+                    height: '100px',
+                    borderRadius: '12px',
+                    background: `linear-gradient(${uiSettings.gradientDirection}deg, ${uiSettings.gradientColors.color1} 0%, ${uiSettings.gradientColors.color2} 100%)`,
+                    border: '2px solid rgba(0,0,0,0.1)',
+                    mb: 3,
+                  }}
+                />
+                
+                <Typography variant="body2" color="text.secondary">
+                  预览效果将在保存后应用到Dashboard页面。
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<SaveIcon />}
+            >
+              保存界面设置
+            </Button>
+          </Box>
+        </TabPanel>
+        
+        {/* 账户选项卡 */}
+        <TabPanel value={tabValue} index={3}>
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" gutterBottom>
               更改密码

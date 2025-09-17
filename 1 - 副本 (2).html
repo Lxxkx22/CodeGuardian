@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代码审计系统 - 登录/注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e1a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* 主舞台 */
+        .stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 70%;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+            overflow: hidden;
+        }
+
+        /* 代码块容器 */
+        .code-blocks-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        /* 代码块 */
+        .code-block {
+            position: absolute;
+            width: 80%;
+            left: 10%;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 1s ease;
+            
+        }
+
+        /* 代码容器 - 用于扫描效果 */
+        .code-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* 原始代码 */
+        .code-original {
+            color: #a0a8b8;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        /* 扫描后的代码 */
+        .code-scanned {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            color: #4A90E2;
+            white-space: pre-wrap;
+            margin: 0;
+            /* 初始状态：完全隐藏 */
+            clip-path: polygon(0 0, 0 0, 0 0, 0 0);
+        }
+
+        /* 扫描动画 */
+        .code-block.scanning .code-scanned {
+            animation: scanSpread 2s ease-out forwards;
+        }
+
+        @keyframes scanSpread {
+            0% {
+                clip-path: polygon(0 0, 0 0, 0 0, 0 0);
+            }
+            25% {
+                clip-path: polygon(0 0, 40% 0, 15% 35%, 0 10%);
+            }
+            50% {
+                clip-path: polygon(0 0, 70% 0, 40% 70%, 0 35%);
+            }
+            75% {
+                clip-path: polygon(0 0, 90% 0, 70% 100%, 0 65%);
+            }
+            100% {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+        }
+
+        /* 分析指示器 */
+        .analysis-bar {
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #4A90E2;
+            border-radius: 2px;
+            box-shadow: 0 0 10px #4A90E2;
+            opacity: 0;
+            transform: scaleX(0);
+            z-index: 2;
+        }
+
+        .code-block.analyzing .analysis-bar {
+            opacity: 1;
+            transform: scaleX(1);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 10px #4A90E2;
+                transform: scaleX(1);
+            }
+            50% {
+                box-shadow: 0 0 20px #4A90E2, 0 0 30px rgba(74, 144, 226, 0.5);
+                transform: scaleX(1.02);
+            }
+        }
+
+        /* 漏洞标记容器 */
+        .vulnerability-line {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 漏洞波浪线 */
+        .vulnerability-underline {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                #FF4D4F 2px,
+                #FF4D4F 4px
+            );
+            opacity: 0;
+            transform: scaleX(0);
+            transform-origin: left;
+        }
+
+        /* 漏洞红叉 */
+        .vulnerability-mark {
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FF4D4F;
+            font-weight: bold;
+            font-size: 16px;
+            opacity: 0;
+            animation: none;
+        }
+
+        /* 显示漏洞标记的动画 */
+        .code-block.marked .vulnerability-underline {
+            opacity: 1;
+            transform: scaleX(1);
+            transition: all 0.5s ease 0.1s;
+        }
+
+        .code-block.marked .vulnerability-mark {
+            opacity: 1;
+            animation: markAppear 0.5s ease 0.3s forwards;
+        }
+
+        .code-block.marked .vulnerability-line {
+            color: #FF4D4F;
+            transition: color 0.3s ease;
+        }
+
+        @keyframes markAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(-50%) scale(0);
+            }
+            50% {
+                transform: translateY(-50%) scale(1.2);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
+        }
+
+        /* 模拟终端 */
+        .terminal {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 320px;
+            height: 220px;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid #4A90E2;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #00ff00;
+            opacity: 0;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+            z-index: 10;
+        }
+
+        .terminal.active {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.02);
+        }
+
+        .terminal-header {
+            color: #4A90E2;
+            border-bottom: 1px solid #4A90E2;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        .terminal-content {
+            height: 160px;
+            overflow: hidden;
+        }
+
+        .cursor {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* 登录/注册面板 */
+        .auth-panel {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 30%;
+            height: 100vh;
+            background: rgba(15, 20, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid #3a4055;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: #4A90E2;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: #a0a8b8;
+            font-size: 14px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: rgba(30, 35, 50, 0.5);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: #a0a8b8;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .auth-tab.active {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #a0a8b8;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(30, 35, 50, 0.8);
+            border: 1px solid #3a4055;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: #6a7080;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #4A90E2;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            color: #357ABD;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .stage {
+                width: 60%;
+            }
+            .auth-panel {
+                width: 40%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stage {
+                width: 100%;
+            }
+            .auth-panel {
+                position: fixed;
+                width: 100%;
+                background: rgba(15, 20, 35, 0.98);
+                z-index: 1000;
+            }
+            .terminal {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 主舞台 -->
+    <div class="stage">
+        <div class="code-blocks-container" id="codeBlocksContainer">
+            <!-- 代码块将通过JavaScript动态生成 -->
+        </div>
+        
+        <!-- 模拟终端 -->
+        <div class="terminal" id="terminal">
+            <div class="terminal-header">Security Audit Report</div>
+            <div class="terminal-content" id="terminalContent"></div>
+        </div>
+    </div>
+
+    <!-- 登录/注册面板 -->
+    <div class="auth-panel">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>CodeSecure</h1>
+                <p>智能代码安全审计平台</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">登录</button>
+                <button class="auth-tab" onclick="switchTab('register')">注册</button>
+            </div>
+
+            <!-- 登录表单 -->
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">邮箱地址</label>
+                    <input type="email" id="loginEmail" placeholder="请输入您的邮箱" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="auth-button">立即登录</button>
+                <div class="forgot-password">
+                    <a href="#" onclick="showForgotPassword()">忘记密码？</a>
+                </div>
+            </form>
+
+            <!-- 注册表单 -->
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">用户名</label>
+                    <input type="text" id="registerName" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">邮箱地址</label>
+                    <input type="email" id="registerEmail" placeholder="请输入邮箱地址" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">密码</label>
+                    <input type="password" id="registerPassword" placeholder="请设置密码" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" placeholder="请再次输入密码" required>
+                </div>
+                <button type="submit" class="auth-button">立即注册</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 代码块示例数据
+        const codeExamples = [
+            {
+                code: `function validateUser(input) {
+    const query = "SELECT * FROM users WHERE id = " + input;
+    return database.execute(query);
+}
+
+function processPayment(amount) {
+    if (amount > 0) {
+        return chargeCard(amount);
+    }
+}`,
+                vulnerabilities: [1, 4],
+                report: [
+                    "SQL Injection vulnerability detected in line 2",
+                    "Missing input validation for user input",
+                    "Potential payment bypass in line 6",
+                    "Recommendation: Use parameterized queries"
+                ]
+            },
+            {
+                code: `app.get('/admin', (req, res) => {
+    const userRole = req.headers['x-user-role'];
+    if (userRole === 'admin') {
+        res.json(getAdminData());
+    } else {
+        res.status(403).send('Forbidden');
+    }
+}`,
+                vulnerabilities: [1, 2],
+                report: [
+                    "Authorization bypass vulnerability detected",
+                    "Header-based authentication is insecure",
+                    "Missing proper authentication middleware",
+                    "Recommendation: Implement JWT token validation"
+                ]
+            },
+            {
+                code: `function uploadFile(file) {
+    const fileName = file.originalname;
+    const filePath = './uploads/' + fileName;
+    fs.writeFileSync(filePath, file.buffer);
+    
+    return {
+        success: true,
+        path: filePath
+    };
+}`,
+                vulnerabilities: [2, 3],
+                report: [
+                    "Path traversal vulnerability detected",
+                    "Missing file type validation",
+                    "Unrestricted file upload vulnerability",
+                    "Recommendation: Validate file types and sanitize paths"
+                ]
+            },
+            {
+                code: `const crypto = require('crypto');
+
+function hashPassword(password) {
+    return crypto.createHash('md5').update(password).digest('hex');
+}
+
+function authenticateUser(username, password) {
+    const hashedInput = hashPassword(password);
+    return users.find(u => u.hash === hashedInput);
+}`,
+                vulnerabilities: [3, 7],
+                report: [
+                    "Weak cryptographic hash function (MD5)",
+                    "Missing salt in password hashing",
+                    "Vulnerable to rainbow table attacks",
+                    "Recommendation: Use bcrypt or Argon2"
+                ]
+            }
+        ];
+
+        let currentBlockIndex = 0;
+        let blockCounter = 0;
+        const maxBlocks = 3;
+
+        // 创建代码块
+        function createCodeBlock(data, index) {
+            const block = document.createElement('div');
+            block.className = 'code-block';
+            block.id = `block-${blockCounter++}`;
+            block.style.top = `${100 + index * 200}px`;
+            
+            const codeContainer = document.createElement('div');
+            codeContainer.className = 'code-container';
+            
+            const originalPre = document.createElement('pre');
+            originalPre.className = 'code-original';
+            
+            const scannedPre = document.createElement('pre');
+            scannedPre.className = 'code-scanned';
+            
+            const lines = data.code.split('\n');
+            
+            lines.forEach((line, lineIndex) => {
+                // 原始代码行
+                const originalSpan = document.createElement('span');
+                originalSpan.textContent = line + '\n';
+                originalPre.appendChild(originalSpan);
+                
+                // 扫描后的代码行
+                const scannedSpan = document.createElement('span');
+                if (data.vulnerabilities.includes(lineIndex)) {
+                    const vulnerabilityLine = document.createElement('span');
+                    vulnerabilityLine.className = 'vulnerability-line';
+                    vulnerabilityLine.textContent = line;
+                    
+                    const underline = document.createElement('span');
+                    underline.className = 'vulnerability-underline';
+                    
+                    const mark = document.createElement('span');
+                    mark.className = 'vulnerability-mark';
+                    mark.textContent = '✗';
+                    
+                    vulnerabilityLine.appendChild(underline);
+                    vulnerabilityLine.appendChild(mark);
+                    scannedSpan.appendChild(vulnerabilityLine);
+                } else {
+                    scannedSpan.textContent = line;
+                }
+                scannedSpan.innerHTML += '\n';
+                scannedPre.appendChild(scannedSpan);
+            });
+            
+            codeContainer.appendChild(originalPre);
+            codeContainer.appendChild(scannedPre);
+            block.appendChild(codeContainer);
+            
+            const analysisBar = document.createElement('div');
+            analysisBar.className = 'analysis-bar';
+            block.appendChild(analysisBar);
+            
+            block.dataset.reportData = JSON.stringify(data.report);
+            
+            return block;
+        }
+
+        // 初始化代码块
+        function initializeBlocks() {
+            const container = document.getElementById('codeBlocksContainer');
+            
+            for (let i = 0; i < maxBlocks; i++) {
+                const data = codeExamples[currentBlockIndex % codeExamples.length];
+                const block = createCodeBlock(data, i);
+                container.appendChild(block);
+                currentBlockIndex++;
+            }
+        }
+
+        // 开始扫描动画
+        function startScanAnimation(block) {
+            block.classList.add('scanning');
+            
+            setTimeout(() => {
+                block.classList.remove('scanning');
+                startAnalysisAnimation(block);
+            }, 2000);
+        }
+
+        // 开始分析动画
+        function startAnalysisAnimation(block) {
+            block.classList.add('analyzing');
+            
+            setTimeout(() => {
+                block.classList.remove('analyzing');
+                markVulnerabilities(block);
+                startReportingAnimation(block);
+            }, 1000);
+        }
+
+        // 标记漏洞
+        function markVulnerabilities(block) {
+            block.classList.add('marked');
+        }
+
+        // 开始报告动画
+        function startReportingAnimation(block) {
+            const terminal = document.getElementById('terminal');
+            const terminalContent = document.getElementById('terminalContent');
+            const reportData = JSON.parse(block.dataset.reportData);
+            
+            terminal.classList.add('active');
+            terminalContent.innerHTML = '';
+            
+            let lineIndex = 0;
+            function typeNextLine() {
+                if (lineIndex < reportData.length) {
+                    const line = document.createElement('div');
+                    line.style.color = lineIndex === 0 ? '#FF4D4F' : '#00ff00';
+                    terminalContent.appendChild(line);
+                    
+                    let charIndex = 0;
+                    const text = `> ${reportData[lineIndex]}`;
+                    
+                    function typeChar() {
+                        if (charIndex < text.length) {
+                            line.textContent += text[charIndex];
+                            charIndex++;
+                            setTimeout(typeChar, 30);
+                        } else {
+                            lineIndex++;
+                            setTimeout(typeNextLine, 200);
+                        }
+                    }
+                    typeChar();
+                } else {
+                    const cursor = document.createElement('span');
+                    cursor.className = 'cursor';
+                    cursor.textContent = '_';
+                    terminalContent.appendChild(cursor);
+                    
+                    setTimeout(() => {
+                        terminal.classList.remove('active');
+                        moveBlocksUp();
+                    }, 1000);
+                }
+            }
+            
+            typeNextLine();
+        }
+
+        // 向上移动所有代码块
+        function moveBlocksUp() {
+            const container = document.getElementById('codeBlocksContainer');
+            const blocks = container.querySelectorAll('.code-block');
+            
+            blocks.forEach((block, index) => {
+                const currentTop = parseInt(block.style.top);
+                if (index === 0) {
+                    block.style.transform = 'translateY(-100px)';
+                    block.style.opacity = '0';
+                    setTimeout(() => {
+                        container.removeChild(block);
+                    }, 1000);
+                } else {
+                    block.style.top = `${currentTop - 200}px`;
+                }
+            });
+            
+            setTimeout(() => {
+                const data = codeExamples[currentBlockIndex % codeExamples.length];
+                const newBlock = createCodeBlock(data, maxBlocks - 1);
+                container.appendChild(newBlock);
+                currentBlockIndex++;
+                
+                setTimeout(() => {
+                    const firstBlock = container.querySelector('.code-block');
+                    if (firstBlock) {
+                        startScanAnimation(firstBlock);
+                    }
+                }, 1000);
+            }, 1000);
+        }
+
+        // 开始动画循环
+        function startAnimationLoop() {
+            const container = document.getElementById('codeBlocksContainer');
+            const firstBlock = container.querySelector('.code-block');
+            if (firstBlock) {
+                startScanAnimation(firstBlock);
+            }
+        }
+
+        // 切换登录/注册标签
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.auth-tab');
+            const forms = document.querySelectorAll('.auth-form');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            forms.forEach(f => f.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}Form`).classList.add('active');
+        }
+
+        // 忘记密码
+        function showForgotPassword() {
+            alert('请联系系统管理员重置密码');
+        }
+
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (email && password) {
+                alert('登录功能演示 - 实际项目中请连接后端API');
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('密码确认不匹配');
+                return;
+            }
+            
+            if (name && email && password) {
+                alert('注册功能演示 - 实际项目中请连接后端API');
+            }
+        });
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBlocks();
+            setTimeout(startAnimationLoop, 1000);
+        });
+    </script>
+</body>
+</html>
