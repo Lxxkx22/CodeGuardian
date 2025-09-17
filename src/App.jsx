@@ -1,8 +1,16 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Box } from '@mui/material'
 
+// 导入认证上下文
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+
 // 导入布局组件
 import Layout from './components/Layout/Layout'
+
+// 导入错误处理组件
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary'
+import { PageLoading } from './components/LoadingSpinner/LoadingSpinner'
+import { NotFoundError, ErrorMessage } from './components/ErrorMessage/ErrorMessage'
 
 // 导入页面组件
 import Login from './pages/Auth/Login'
@@ -14,9 +22,25 @@ import History from './pages/History/History'
 import Learn from './pages/Learn/Learn'
 import Settings from './pages/Settings/Settings'
 
-function App() {
-  // 模拟用户认证状态
-  const isAuthenticated = true; // 在实际应用中，这应该从认证系统获取
+function AppRoutes() {
+  const { isAuthenticated, loading, error } = useAuth();
+
+  if (loading) {
+    return <PageLoading message="正在验证身份..." />;
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <ErrorMessage
+          title="认证错误"
+          message={error}
+          onRetry={() => window.location.reload()}
+          showRetry={true}
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -37,10 +61,20 @@ function App() {
         </Route>
         
         {/* 404 路由 */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<NotFoundError />} />
       </Routes>
     </Box>
   )
+}
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </ErrorBoundary>
+  );
 }
 
 export default App

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Box,
   Drawer,
@@ -24,6 +25,9 @@ import {
   Tune as TuneIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
+  School as SchoolIcon,
+  Share as ShareIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -31,10 +35,11 @@ const drawerWidth = 240;
 const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   
-  // Mock user data - in a real app, this would come from authentication context
-  const user = {
+  // 使用认证上下文中的用户数据
+  const currentUser = user || {
     name: 'Alex',
     role: 'teacher', // or 'student'
   };
@@ -53,20 +58,24 @@ const Layout = () => {
   };
 
   const handleLogout = () => {
-    // Handle logout logic here
+    // 调用认证上下文的logout方法
+    logout();
     handleProfileMenuClose();
     navigate('/login');
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'New Scan', icon: <AddCircleIcon />, path: '/new-scan' },
-    { text: 'My Reports', icon: <DescriptionIcon />, path: '/history' },
+    { text: 'Reports', icon: <DescriptionIcon />, path: '/reports' },
+    { text: 'Shared Reports', icon: <ShareIcon />, path: '/shared-reports' },
+    { text: 'Learn', icon: <SchoolIcon />, path: '/learn' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
   ];
 
   // Only show Rule Sets for teachers
   const teacherMenuItems = [
-    { text: 'Rule Sets', icon: <TuneIcon />, path: '/learn' },
+    { text: 'Rule Sets', icon: <TuneIcon />, path: '/rulesets' },
   ];
 
   return (
@@ -83,15 +92,18 @@ const Layout = () => {
       >
         <Toolbar>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {location.pathname === '/dashboard' && 'Dashboard'}
+            {location.pathname === '/' && 'Dashboard'}
             {location.pathname === '/new-scan' && 'New Scan'}
-            {location.pathname === '/history' && 'My Reports'}
-            {location.pathname === '/learn' && 'Rule Sets'}
+            {location.pathname === '/reports' && 'Reports'}
+            {location.pathname === '/shared-reports' && 'Shared Reports'}
+            {location.pathname === '/learn' && 'Learn'}
+            {location.pathname === '/rulesets' && 'Rule Sets'}
             {location.pathname === '/settings' && 'Settings'}
-            {location.pathname.startsWith('/scan-report/') && 'Scan Report'}
+            {location.pathname.startsWith('/report/') && 'Scan Report'}
           </Typography>
         </Toolbar>
       </AppBar>
+
       <Drawer
         sx={{
           width: drawerWidth,
@@ -117,7 +129,7 @@ const Layout = () => {
                 selected={location.pathname === item.path}
                 onClick={() => navigate(item.path)}
               >
-                <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
+                <ListItemIcon>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText primary={item.text} />
@@ -125,7 +137,9 @@ const Layout = () => {
             </ListItem>
           ))}
         </List>
-        {user.role === 'teacher' && (
+        
+        {/* Only show teacher menu items if user is a teacher */}
+        {currentUser.role === 'teacher' && (
           <>
             <Divider />
             <List>
@@ -135,7 +149,7 @@ const Layout = () => {
                     selected={location.pathname === item.path}
                     onClick={() => navigate(item.path)}
                   >
-                    <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
+                    <ListItemIcon>
                       {item.icon}
                     </ListItemIcon>
                     <ListItemText primary={item.text} />
@@ -151,10 +165,10 @@ const Layout = () => {
           <ListItemButton onClick={handleProfileMenuOpen}>
             <ListItemIcon>
               <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                {user.name.charAt(0)}
+                {currentUser.name.charAt(0)}
               </Avatar>
             </ListItemIcon>
-            <ListItemText primary={user.name} />
+            <ListItemText primary={currentUser.name} />
           </ListItemButton>
         </ListItem>
         <Menu

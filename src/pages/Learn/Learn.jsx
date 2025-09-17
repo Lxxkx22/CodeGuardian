@@ -140,7 +140,11 @@ const KnowledgeArticle = ({ article }) => {
 // 交互式课程组件
 const CourseCard = ({ course }) => {
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card sx={{ 
+      height: '400px', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       <Box sx={{ p: 3, flex: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box
@@ -218,7 +222,11 @@ const CourseCard = ({ course }) => {
 // 安全挑战组件
 const ChallengeCard = ({ challenge }) => {
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card sx={{ 
+      height: '400px', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       <Box sx={{ p: 3, flex: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Chip

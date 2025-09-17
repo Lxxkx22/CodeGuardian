@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Box,
   Card,
@@ -9,16 +10,21 @@ import {
   Link,
   InputAdornment,
   IconButton,
+  Alert,
+  Divider,
+  Chip,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, defaultAccounts } = useAuth();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,9 +36,25 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // In a real app, this would call an authentication API
-    console.log('Login submitted:', formData);
-    navigate('/');
+    setError('');
+    
+    try {
+      // 调用认证上下文的login方法
+      const result = login(formData.username, formData.password);
+      
+      // 跳转到首页
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleQuickLogin = (accountType) => {
+    const account = defaultAccounts[accountType];
+    setFormData({
+      username: account.username,
+      password: account.password,
+    });
   };
 
   const handleTogglePasswordVisibility = () => {
@@ -69,10 +91,40 @@ const Login = () => {
         </Box>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2" gutterBottom>
+              <strong>测试账号：</strong>
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+              <Chip 
+                label="学生账号 (student/123456)" 
+                size="small" 
+                onClick={() => handleQuickLogin('student')}
+                clickable
+                color="primary"
+                variant="outlined"
+              />
+              <Chip 
+                label="教师账号 (teacher/123456)" 
+                size="small" 
+                onClick={() => handleQuickLogin('teacher')}
+                clickable
+                color="secondary"
+                variant="outlined"
+              />
+            </Box>
+          </Alert>
+
           <TextField
-            label="邮箱/用户名"
-            name="email"
-            value={formData.email}
+            label="用户名"
+            name="username"
+            value={formData.username}
             onChange={handleChange}
             fullWidth
             required
@@ -80,7 +132,7 @@ const Login = () => {
               startAdornment: (
                 <InputAdornment position="start">
                   <Box component="span" sx={{ fontSize: '1.2rem' }}>
-                    ✉️
+                    👤
                   </Box>
                 </InputAdornment>
               ),

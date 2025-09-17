@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -30,12 +30,64 @@ import {
   Visibility as VisibilityIcon,
   Download as DownloadIcon,
 } from '@mui/icons-material';
+import { ReportListSkeleton } from '../../components/LoadingSpinner/LoadingSpinner';
+import { PageError } from '../../components/ErrorMessage/ErrorMessage';
 
 const History = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // 模拟数据加载
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        // 模拟API调用延迟
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setError(null);
+      } catch (err) {
+        setError('加载扫描历史失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    // 重新加载数据
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h1" gutterBottom>
+          我的报告
+        </Typography>
+        <ReportListSkeleton count={5} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageError
+        title="加载失败"
+        message={error}
+        onRetry={handleRetry}
+      />
+    );
+  }
   
   // 模拟历史扫描数据
   const scanHistory = [

@@ -1,11 +1,15 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { AuthProvider } from '../contexts/AuthContext';
 import Layout from '../components/Layout/Layout';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import NewScan from '../pages/NewScan/NewScan';
-import Reports from '../pages/Reports/Reports';
+import History from '../pages/History/History';
 import RuleSets from '../pages/RuleSets/RuleSets';
+import SharedReports from '../pages/SharedReports/SharedReports';
 import ScanReport from '../pages/ScanReport/ScanReport';
 import SharedReport from '../pages/SharedReport/SharedReport';
+import Learn from '../pages/Learn/Learn';
+import Settings from '../pages/Settings/Settings';
 import Login from '../pages/Auth/Login';
 import Register from '../pages/Auth/Register';
 import NotFound from '../pages/NotFound/NotFound';
@@ -14,7 +18,11 @@ import AccessDenied from '../pages/AccessDenied/AccessDenied';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout />,
+    element: (
+      <AuthProvider>
+        <Layout />
+      </AuthProvider>
+    ),
     children: [
       {
         index: true,
@@ -26,7 +34,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'reports',
-        element: <Reports />,
+        element: <History />,
       },
       {
         path: 'reports/:reportId',
@@ -36,27 +44,59 @@ const router = createBrowserRouter([
         path: 'rulesets',
         element: <RuleSets />,
       },
+      {
+        path: 'shared-reports',
+        element: <SharedReports />,
+      },
+      {
+        path: 'learn',
+        element: <Learn />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
+      },
     ],
   },
   {
     path: '/login',
-    element: <Login />,
+    element: (
+      <AuthProvider>
+        <Login />
+      </AuthProvider>
+    ),
   },
   {
     path: '/register',
-    element: <Register />,
+    element: (
+      <AuthProvider>
+        <Register />
+      </AuthProvider>
+    ),
   },
   {
     path: '/shared-report/:reportId',
-    element: <SharedReport />,
+    element: (
+      <AuthProvider>
+        <SharedReport />
+      </AuthProvider>
+    ),
   },
   {
     path: '/access-denied',
-    element: <AccessDenied />,
+    element: (
+      <AuthProvider>
+        <AccessDenied />
+      </AuthProvider>
+    ),
   },
   {
     path: '*',
-    element: <NotFound />,
+    element: (
+      <AuthProvider>
+        <NotFound />
+      </AuthProvider>
+    ),
   },
 ]);
 

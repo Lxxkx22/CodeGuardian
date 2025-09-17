@@ -60,7 +60,7 @@ const Dashboard = () => {
   };
 
   const handleViewReport = (reportId) => {
-    navigate(`/reports/${reportId}`);
+    navigate(`/scan-report/${reportId}`);
   };
 
   // Empty state - no recent scans
@@ -88,7 +88,15 @@ const Dashboard = () => {
       <Grid container spacing={3}>
         {/* 左侧主区域 */}
         <Grid item xs={12} md={7}>
-          <Card sx={{ p: 4, height: '100%' }}>
+          <Card sx={{ 
+            p: 4, 
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center'
+          }}>
             <Typography variant="h1" gutterBottom>
               你好, {user.name}!
             </Typography>
@@ -110,13 +118,17 @@ const Dashboard = () => {
         {/* 右侧次区域 */}
         <Grid item xs={12} md={5}>
           {recentScans.length > 0 ? (
-            <Card sx={{ height: '100%' }}>
+            <Card sx={{ 
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
               <Box sx={{ p: 2, pb: 0 }}>
                 <Typography variant="h2" gutterBottom>
                   最近的扫描
                 </Typography>
               </Box>
-              <List sx={{ p: 0 }}>
+              <List sx={{ p: 0, flex: 1, overflow: 'auto' }}>
                 {recentScans.map((scan, index) => (
                   <Box key={scan.id}>
                     <ListItem

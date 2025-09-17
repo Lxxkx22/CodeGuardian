@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box,
@@ -27,9 +27,14 @@ import {
   Share as ShareIcon,
   ContentCopy as ContentCopyIcon,
   CheckCircle as CheckCircleIcon,
+  Security as SecurityIcon,
+  TrendingUp as TrendingUpIcon,
+  School as SchoolIcon,
 } from '@mui/icons-material';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { ReportDetailSkeleton } from '../../components/LoadingSpinner/LoadingSpinner';
+import { PageError, ScanFailedError } from '../../components/ErrorMessage/ErrorMessage';
 
 // 注册 Chart.js 组件
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -196,6 +201,76 @@ const ScanReport = () => {
   const [shareAnchorEl, setShareAnchorEl] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showName, setShowName] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [scanFailed, setScanFailed] = useState(false);
+  
+  // 模拟数据加载
+  useEffect(() => {
+    const loadReport = async () => {
+      try {
+        setLoading(true);
+        // 模拟API调用延迟
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // 模拟扫描失败的情况（10%概率）
+        if (Math.random() < 0.1) {
+          setScanFailed(true);
+          return;
+        }
+        
+        setError(null);
+        setScanFailed(false);
+      } catch (err) {
+        setError('加载报告失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadReport();
+  }, [reportId]);
+
+  const handleRetry = () => {
+    setError(null);
+    setScanFailed(false);
+    setLoading(true);
+    // 重新加载数据
+    setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+  };
+
+  const handleGoHome = () => {
+    window.location.href = '/dashboard';
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <ReportDetailSkeleton />
+      </Box>
+    );
+  }
+
+  if (scanFailed) {
+    return (
+      <ScanFailedError
+        onRetry={handleRetry}
+        onGoHome={handleGoHome}
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <PageError
+        title="报告加载失败"
+        message={error}
+        onRetry={handleRetry}
+      />
+    );
+  }
   
   // 模拟报告数据
   const report = {
@@ -353,14 +428,118 @@ int main() {
 
   // 空状态 - 没有发现问题
   const renderEmptyState = () => (
-    <Box sx={{ textAlign: 'center', py: 4 }}>
-      <CheckCircleIcon sx={{ fontSize: 80, color: 'semantic.success', mb: 2 }} />
-      <Typography variant="h2" gutterBottom>
-        太棒了！
-      </Typography>
-      <Typography variant="body1" paragraph>
-        我们没有在您的代码中发现任何已知的安全问题。请继续保持良好的编码习惯！
-      </Typography>
+    <Box>
+      {/* 成功状态卡片 */}
+      <Card sx={{ p: 4, mb: 4, textAlign: 'center', bgcolor: 'success.light', color: 'success.contrastText' }}>
+        <CheckCircleIcon sx={{ fontSize: 80, mb: 2 }} />
+        <Typography variant="h2" gutterBottom>
+          太棒了！代码安全检查通过
+        </Typography>
+        <Typography variant="h6" paragraph>
+          我们没有在您的代码中发现任何已知的安全问题。请继续保持良好的编码习惯！
+        </Typography>
+      </Card>
+
+      {/* 统计信息网格 */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
+            <SecurityIcon sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
+            <Typography variant="h4" color="success.main" gutterBottom>
+              0
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
+              安全问题
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              未发现任何安全漏洞
+            </Typography>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
+            <TrendingUpIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h4" color="primary.main" gutterBottom>
+              100%
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
+              安全评分
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              代码质量优秀
+            </Typography>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 3, textAlign: 'center', height: '100%' }}>
+            <SchoolIcon sx={{ fontSize: 48, color: 'info.main', mb: 2 }} />
+            <Typography variant="h4" color="info.main" gutterBottom>
+              A+
+            </Typography>
+            <Typography variant="h6" color="text.secondary">
+              安全等级
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              符合最佳实践
+            </Typography>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* 建议和下一步 */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" gutterBottom color="primary.main">
+              🎉 恭喜您！
+            </Typography>
+            <Typography variant="body1" paragraph>
+              您的代码通过了我们的安全检查，这表明您在编写安全代码方面做得很好。
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              • 没有发现缓冲区溢出漏洞<br/>
+              • 没有发现SQL注入风险<br/>
+              • 没有发现跨站脚本攻击漏洞<br/>
+              • 输入验证处理得当<br/>
+              • 内存管理安全
+            </Typography>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" gutterBottom color="info.main">
+              💡 继续提升
+            </Typography>
+            <Typography variant="body1" paragraph>
+              虽然没有发现问题，但您可以继续学习更多安全编程知识：
+            </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Button 
+                variant="outlined" 
+                size="small" 
+                sx={{ mr: 1, mb: 1 }}
+                onClick={() => window.open('/learn', '_blank')}
+              >
+                学习资源
+              </Button>
+              <Button 
+                variant="outlined" 
+                size="small" 
+                sx={{ mr: 1, mb: 1 }}
+              >
+                安全挑战
+              </Button>
+              <Button 
+                variant="outlined" 
+                size="small" 
+                sx={{ mb: 1 }}
+              >
+                最佳实践
+              </Button>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 
