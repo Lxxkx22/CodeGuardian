@@ -39,7 +39,7 @@ const TabPanel = (props) => {
       {...other}
     >
       {value === index && (
-        <Box sx={{ py: 3 }}>
+        <Box sx={{ p: 4 }}>
           {children}
         </Box>
       )}
@@ -56,8 +56,8 @@ const Settings = () => {
   const [profileForm, setProfileForm] = useState({
     name: 'Alex Chen',
     email: 'alex.chen@university.edu',
-    institution: '计算机科学与工程学院',
-    bio: '计算机科学专业大三学生，对软件安全和代码质量充满热情。',
+    school: '北京大学',
+    class: '计算机科学与技术2021级1班',
   });
   
   // 通知设置状态
@@ -128,6 +128,13 @@ const Settings = () => {
     });
   };
   
+  const handleUiSave = () => {
+    // 这里可以添加保存到本地存储或发送到服务器的逻辑
+    console.log('保存界面设置:', uiSettings);
+    // 显示保存成功提示
+    alert('界面设置已保存！');
+  };
+  
   const handlePasswordChange = (e) => {
     setPasswordForm({
       ...passwordForm,
@@ -162,10 +169,17 @@ const Settings = () => {
   return (
     <Box>
       <Typography variant="h1" gutterBottom>
-        设置
       </Typography>
       
-      <Card sx={{ mb: 4 }}>
+      <Card sx={{ 
+        mb: 4,
+        maxWidth: '960px',
+        mx: 'auto',
+        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
+      }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="设置选项卡">
             <Tab label="个人资料" />
@@ -233,21 +247,19 @@ const Settings = () => {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="学院/机构"
-                      name="institution"
-                      value={profileForm.institution}
+                      label="学校"
+                      name="school"
+                      value={profileForm.school}
                       onChange={handleProfileChange}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="个人简介"
-                      name="bio"
-                      value={profileForm.bio}
+                      label="班级"
+                      name="class"
+                      value={profileForm.class}
                       onChange={handleProfileChange}
-                      multiline
-                      rows={4}
                     />
                   </Grid>
                 </Grid>
@@ -498,6 +510,7 @@ const Settings = () => {
               variant="contained"
               color="primary"
               startIcon={<SaveIcon />}
+              onClick={handleUiSave}
             >
               保存界面设置
             </Button>

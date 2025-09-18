@@ -6,7 +6,7 @@ const theme = createTheme({
       main: '#4A90E2', // 主色 - 沉稳而友好的蓝色
     },
     background: {
-      default: '#F8F9FA', // 背景色 - 非常浅的灰色
+      // 移除默认背景色，让全局渐变背景生效
       paper: '#FFFFFF', // 卡片/容器背景 - 纯白
     },
     text: {

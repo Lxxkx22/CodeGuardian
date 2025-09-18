@@ -86,7 +86,7 @@ const KnowledgeArticle = ({ article }) => {
           xs={12}
           md={4}
           sx={{
-            bgcolor: 'background.default',
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
             p: 3,
             display: 'flex',
             flexDirection: 'column',
@@ -205,7 +205,7 @@ const CourseCard = ({ course }) => {
         </Box>
       </Box>
       
-      <Box sx={{ p: 2, bgcolor: 'background.default', borderTop: 1, borderColor: 'divider' }}>
+      <Box sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.9)', borderTop: 1, borderColor: 'divider' }}>
         <Button
           fullWidth
           variant="contained"
@@ -270,7 +270,7 @@ const ChallengeCard = ({ challenge }) => {
         </Box>
       </Box>
       
-      <Box sx={{ p: 2, bgcolor: 'background.default', borderTop: 1, borderColor: 'divider' }}>
+      <Box sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.9)', borderTop: 1, borderColor: 'divider' }}>
         <Button
           fullWidth
           variant="contained"
@@ -445,7 +445,16 @@ const Learn = () => {
         学习资源
       </Typography>
       
-      <Card sx={{ mb: 4 }}>
+      <Card 
+        sx={{ 
+          mb: 4,
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          borderRadius: 2,
+        }}
+      >
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="学习资源选项卡">
             <Tab label="知识库" />
@@ -512,7 +521,7 @@ const Learn = () => {
         
         {/* 常见问题选项卡 */}
         <TabPanel value={tabValue} index={3}>
-          <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default', mb: 4 }}>
+          <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(255, 255, 255, 0.9)', mb: 4 }}>
             <Typography variant="h6" gutterBottom>
               常见问题解答 (FAQ)
             </Typography>

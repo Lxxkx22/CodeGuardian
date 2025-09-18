@@ -249,17 +249,27 @@ const SharedReports = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       <Typography variant="h1" gutterBottom>
         共享报告
       </Typography>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={activeTab} onChange={handleTabChange}>
-          <Tab label={`我分享的 (${sharedReports.length})`} />
-          <Tab label={`收到的分享 (${receivedReports.length})`} />
-        </Tabs>
-      </Box>
+      <Card 
+        sx={{ 
+          p: 3,
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          borderRadius: 2,
+        }}
+      >
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label={`我分享的 (${sharedReports.length})`} />
+            <Tab label={`收到的分享 (${receivedReports.length})`} />
+          </Tabs>
+        </Box>
 
       {/* 我分享的报告 */}
       {activeTab === 0 && (
@@ -584,6 +594,7 @@ const SharedReports = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      </Card>
     </Box>
   );
 };

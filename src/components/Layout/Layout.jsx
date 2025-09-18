@@ -202,7 +202,6 @@ const Layout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          bgcolor: 'background.default',
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',

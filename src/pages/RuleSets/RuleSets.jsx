@@ -278,19 +278,33 @@ const RuleSets = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h1">
-          规则集管理
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateNew}
-        >
-          创建规则集
-        </Button>
-      </Box>
+    <Box>
+      <Typography variant="h1" gutterBottom>
+        规则集管理
+      </Typography>
+      
+      <Card 
+        sx={{ 
+          p: 3,
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          borderRadius: 2,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h2">
+            规则集列表
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateNew}
+          >
+            创建规则集
+          </Button>
+        </Box>
 
       {ruleSets.length === 0 ? (
         // 空状态
@@ -408,6 +422,7 @@ const RuleSets = () => {
           ))}
         </Grid>
       )}
+      </Card>
 
       {/* 创建/编辑规则集对话框 */}
       <Dialog

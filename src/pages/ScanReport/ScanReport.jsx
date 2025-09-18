@@ -545,23 +545,38 @@ int main() {
 
   return (
     <Box>
-      {/* 报告头 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h1" gutterBottom>
-            {report.fileName} 的安全报告
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            扫描于: {report.scanDate} | 模式: {report.scanMode}
-          </Typography>
+      <Typography variant="h1" gutterBottom>
+        {report.fileName} 的安全报告
+      </Typography>
+      
+      <Card 
+        sx={{ 
+          p: 3,
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          borderRadius: 2,
+        }}
+      >
+        {/* 报告头 */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography variant="h2" gutterBottom>
+              扫描结果详情
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              扫描于: {report.scanDate} | 模式: {report.scanMode}
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<ShareIcon />}
+            onClick={handleShareClick}
+          >
+            分享
+          </Button>
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<ShareIcon />}
-          onClick={handleShareClick}
-        >
-          分享
-        </Button>
         <Popover
           open={shareOpen}
           anchorEl={shareAnchorEl}
@@ -606,7 +621,6 @@ int main() {
             />
           </Box>
         </Popover>
-      </Box>
 
       {report.issues.length > 0 ? (
         <>
@@ -703,6 +717,7 @@ int main() {
       ) : (
         renderEmptyState()
       )}
+      </Card>
     </Box>
   );
 };

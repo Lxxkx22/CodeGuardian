@@ -448,35 +448,55 @@ const NewScan = () => {
 
   return (
     <Box>
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+      <Typography variant="h1" gutterBottom>
+      </Typography>
+      
+      <Card sx={{ 
+        mb: 4,
+        maxWidth: '960px',
+        mx: 'auto',
+        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
+        p: 4,
+      }}>
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
 
-      <Card sx={{ p: 4 }}>
-        {activeStep === 0 && (
-          <UploadStep
-            files={files}
-            setFiles={setFiles}
-            onNext={handleNext}
-          />
-        )}
-        
-        {activeStep === 1 && (
-          <ScanModeStep
-            scanMode={scanMode}
-            setScanMode={setScanMode}
-            ruleSet={ruleSet}
-            setRuleSet={setRuleSet}
-            onBack={handleBack}
-            onNext={handleNext}
-          />
-        )}
-        
-        {activeStep === 2 && <ScanningStep />}
+        <Card sx={{ 
+          p: 4,
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 4px 16px rgba(31, 38, 135, 0.2)',
+        }}>
+          {activeStep === 0 && (
+            <UploadStep
+              files={files}
+              setFiles={setFiles}
+              onNext={handleNext}
+            />
+          )}
+          
+          {activeStep === 1 && (
+            <ScanModeStep
+              scanMode={scanMode}
+              setScanMode={setScanMode}
+              ruleSet={ruleSet}
+              setRuleSet={setRuleSet}
+              onBack={handleBack}
+              onNext={handleNext}
+            />
+          )}
+          
+          {activeStep === 2 && <ScanningStep />}
+        </Card>
       </Card>
     </Box>
   );

@@ -30,6 +30,7 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [showArrows, setShowArrows] = useState(false);
   
   // Mock user data - in a real app, this would come from authentication context
   const user = {
@@ -513,7 +514,15 @@ const Dashboard = () => {
 
   // 获取卡片样式 - 层叠式3D轮播效果
   const getCardStyle = (index) => {
-    const relativeIndex = index - currentCardIndex;
+    let relativeIndex = index - currentCardIndex;
+
+    // 调整 relativeIndex 以实现循环效果
+    if (relativeIndex > cards.length / 2) {
+      relativeIndex -= cards.length;
+    } else if (relativeIndex < -cards.length / 2) {
+      relativeIndex += cards.length;
+    }
+
     const absIndex = Math.abs(relativeIndex);
     
     // 基础位移和缩放
@@ -570,9 +579,14 @@ const Dashboard = () => {
   return (
     <Box sx={{ 
       height: '100vh', 
+      width: '100vw',
       overflow: 'hidden',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      position: 'relative'
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      margin: 0,
+      padding: 0
     }}>
       {/* 3D轮播容器 */}
       <Box
@@ -589,6 +603,33 @@ const Dashboard = () => {
           minHeight: '100vh',
         }}
       >
+        {/* 左侧悬停区域 */}
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '200px',
+            height: '100%',
+            zIndex: 50,
+          }}
+          onMouseEnter={() => setShowArrows(true)}
+          onMouseLeave={() => setShowArrows(false)}
+        />
+        
+        {/* 右侧悬停区域 */}
+        <Box
+          sx={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '200px',
+            height: '100%',
+            zIndex: 50,
+          }}
+          onMouseEnter={() => setShowArrows(true)}
+          onMouseLeave={() => setShowArrows(false)}
+        />
         {/* 轮播场景 */}
          <Box
            sx={{
@@ -606,12 +647,12 @@ const Dashboard = () => {
                  key={card.id}
                  sx={{
                    position: 'absolute',
-                   width: '600px',
-                   height: '500px',
+                   width: '690px',
+                   height: '575px',
                    left: '50%',
                    top: '50%',
-                   marginLeft: '-300px',
-                   marginTop: '-250px',
+                   marginLeft: '-350px',
+                   marginTop: '-275px',
                    transform: cardStyle.transform,
                    opacity: cardStyle.opacity,
                    zIndex: cardStyle.zIndex,
@@ -649,7 +690,7 @@ const Dashboard = () => {
             color: 'white',
             width: '60px',
             height: '60px',
-            opacity: 0.3,
+            opacity: showArrows ? 1 : 0,
             transition: 'all 0.3s ease',
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.3)',
@@ -674,7 +715,7 @@ const Dashboard = () => {
             color: 'white',
             width: '60px',
             height: '60px',
-            opacity: 0.3,
+            opacity: showArrows ? 1 : 0,
             transition: 'all 0.3s ease',
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.3)',
@@ -682,6 +723,7 @@ const Dashboard = () => {
             },
           }}
         >
+
           <ChevronRightIcon sx={{ fontSize: '2rem' }} />
         </IconButton>
 

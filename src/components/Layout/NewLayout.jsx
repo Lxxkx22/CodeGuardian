@@ -9,11 +9,7 @@ const NewLayout = () => {
         display: 'flex', 
         flexDirection: 'column', 
         minHeight: '100vh',
-        backgroundImage: 'url(/background.svg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
+        // 移除背景图片设置，使用全局渐变背景
       }}
     >
       {/* Docker栏 */}
