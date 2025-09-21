@@ -3,6 +3,8 @@ import { Box } from '@mui/material'
 
 // 导入认证上下文
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+// 导入导航上下文
+import { NavigationProvider } from './contexts/NavigationContext'
 
 // 导入布局组件
 import Layout from './components/Layout/Layout'
@@ -71,7 +73,9 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <AppRoutes />
+        <NavigationProvider>
+          <AppRoutes />
+        </NavigationProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

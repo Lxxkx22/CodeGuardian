@@ -418,6 +418,12 @@ def save_session(request):
                     );
                   })}
                 </pre>
+                {/* 扫描完成图标 */}
+                {currentBlock.analyzing && (
+                  <Box className="scan-complete-icon">
+                    <i className="fas fa-check-circle"></i>
+                  </Box>
+                )}
               </Box>
               <Box className="analysis-bar"></Box>
             </Box>
@@ -435,12 +441,20 @@ def save_session(request):
             ))}
           </Box>
         </Box>
+
+        {/* 连接线 - 从代码位置指向终端 */}
+        {terminalActive && (
+          <Box className="connection-line"></Box>
+        )}
       </Box>
 
       {/* 登录/注册面板 */}
       <Box className="auth-panel">
         <Box className="auth-container">
           <Box className="auth-header">
+            <Box className="shield-icon-container">
+              <i className="fas fa-shield-alt shield-icon"></i>
+            </Box>
             <Typography variant="h4" component="h1" className="auth-title">
               CodeSecure
             </Typography>

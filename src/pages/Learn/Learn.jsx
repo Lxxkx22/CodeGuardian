@@ -445,16 +445,7 @@ const Learn = () => {
         学习资源
       </Typography>
       
-      <Card 
-        sx={{ 
-          mb: 4,
-          backdropFilter: 'blur(10px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          borderRadius: 2,
-        }}
-      >
+      <Box sx={{ mb: 4 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="学习资源选项卡">
             <Tab label="知识库" />
@@ -552,7 +543,7 @@ const Learn = () => {
             </Accordion>
           ))}
         </TabPanel>
-      </Card>
+      </Box>
     </Box>
   );
 };

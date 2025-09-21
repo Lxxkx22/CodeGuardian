@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 import DockerBar from '../DockerBar/DockerBar';
+import PageTransition from '../PageTransition/PageTransition';
 
 const NewLayout = () => {
   return (
@@ -28,7 +29,9 @@ const NewLayout = () => {
           transition: 'padding-top 0.3s ease-in-out',
         }}
       >
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </Box>
     </Box>
   );

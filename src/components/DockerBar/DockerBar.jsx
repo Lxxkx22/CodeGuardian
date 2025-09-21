@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigation } from '../../contexts/NavigationContext';
 import {
   Box,
   AppBar,
@@ -37,6 +38,7 @@ const DockerBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { navigateWithTransition } = useNavigation();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   
@@ -56,7 +58,7 @@ const DockerBar = () => {
   
   const handleProfileClick = () => {
     handleProfileMenuClose();
-    navigate('/settings');
+    navigateWithTransition('/settings');
   };
 
   const handleLogout = () => {
@@ -154,7 +156,7 @@ const DockerBar = () => {
               key={item.text}
               variant={location.pathname === item.path ? 'contained' : 'text'}
               startIcon={item.icon}
-              onClick={() => navigate(item.path)}
+              onClick={() => navigateWithTransition(item.path)}
               size="small"
               sx={{
                 minWidth: 'auto',

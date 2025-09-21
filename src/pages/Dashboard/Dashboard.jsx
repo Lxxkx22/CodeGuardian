@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -26,13 +26,41 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
+import PageTransition from '../../components/PageTransition';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showArrows, setShowArrows] = useState(false);
+  const [animationTriggered, setAnimationTriggered] = useState(false);
   
-  // Mock user data - in a real app, this would come from authentication context
+  // PageTransition 相关状态
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [cardsMovedDown, setCardsMovedDown] = useState(false);
+  const [auxiliaryCardsHidden, setAuxiliaryCardsHidden] = useState(false);
+  const [mainCardTransitioning, setMainCardTransitioning] = useState(false);
+  
+  // 监听来自DockerBar的导航事件
+  useEffect(() => {
+    const handleDashboardTransition = (event) => {
+      const { targetPath, options } = event.detail;
+      startTransition(() => {
+        // 通知导航上下文过渡完成
+        const completeEvent = new CustomEvent('dashboardTransitionComplete');
+        window.dispatchEvent(completeEvent);
+      });
+    };
+
+    window.addEventListener('dashboardTransition', handleDashboardTransition);
+    
+    return () => {
+      window.removeEventListener('dashboardTransition', handleDashboardTransition);
+    };
+  }, []);
+  
+  // 检查是否从登录页跳转过来
+  const isFromLogin = location.state?.fromLogin || false;
   const user = {
     name: 'Alex',
   };
@@ -140,11 +168,36 @@ const Dashboard = () => {
   ]);
 
   const handleStartNewScan = () => {
-    navigate('/new-scan');
+    startTransition(() => navigate('/new-scan'));
   };
 
   const handleViewReport = (reportId) => {
-    navigate(`/scan-report/${reportId}`);
+    startTransition(() => navigate(`/scan-report/${reportId}`));
+  };
+
+  // 启动特殊过渡效果
+  const startTransition = (navigationCallback) => {
+    setIsTransitioning(true);
+    
+    // 第一阶段：辅助卡片移动到主卡片下方 (500ms)
+    setTimeout(() => {
+      setCardsMovedDown(true);
+    }, 100);
+    
+    // 第二阶段：隐藏辅助卡片 (300ms)
+    setTimeout(() => {
+      setAuxiliaryCardsHidden(true);
+    }, 600);
+    
+    // 第三阶段：主卡片开始过渡 (400ms)
+    setTimeout(() => {
+      setMainCardTransitioning(true);
+    }, 900);
+    
+    // 第四阶段：执行导航
+    setTimeout(() => {
+      navigationCallback();
+    }, 1300);
   };
 
   const getRankColor = (rank) => {
@@ -488,6 +541,20 @@ const Dashboard = () => {
   ];
 
   // 3D轮播控制函数
+  // 触发动画
+  useEffect(() => {
+    if (isFromLogin) {
+      // 延迟一点时间开始动画，让页面先渲染
+      const timer = setTimeout(() => {
+        setAnimationTriggered(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      // 如果不是从登录页来的，直接显示
+      setAnimationTriggered(true);
+    }
+  }, [isFromLogin]);
+
   const nextCard = () => {
     setCurrentCardIndex((prev) => (prev + 1) % cards.length);
   };
@@ -512,7 +579,7 @@ const Dashboard = () => {
     };
   }, []);
 
-  // 获取卡片样式 - 层叠式3D轮播效果
+  // 获取卡片样式 - 层叠式3D轮播效果 + 引入动画 + 过渡效果
   const getCardStyle = (index) => {
     let relativeIndex = index - currentCardIndex;
 
@@ -541,6 +608,12 @@ const Dashboard = () => {
       scale = 1;
       opacity = 1;
       zIndex = 100;
+      
+      // 主卡片过渡效果
+      if (mainCardTransitioning) {
+        scale = 0.95;
+        opacity = 0.8;
+      }
     } else if (absIndex === 1) {
       // 左右两侧卡片 - 部分叠在中心卡片下方
       translateX = relativeIndex > 0 ? 200 : -200;
@@ -549,6 +622,18 @@ const Dashboard = () => {
       scale = 0.85;
       opacity = 0.8;
       zIndex = 50;
+      
+      // 辅助卡片移动和隐藏效果
+      if (cardsMovedDown) {
+        translateX = 0; // 移动到中心
+        translateZ = -200; // 移动到主卡片下方
+        rotateY = 0;
+        scale = 0.7;
+      }
+      if (auxiliaryCardsHidden) {
+        opacity = 0;
+        scale = 0.5;
+      }
     } else if (absIndex === 2) {
       // 更外侧卡片 - 部分叠在左右两侧卡片下方
       translateX = relativeIndex > 0 ? 350 : -350;
@@ -557,6 +642,18 @@ const Dashboard = () => {
       scale = 0.7;
       opacity = 0.6;
       zIndex = 25;
+      
+      // 辅助卡片移动和隐藏效果
+      if (cardsMovedDown) {
+        translateX = 0;
+        translateZ = -250;
+        rotateY = 0;
+        scale = 0.6;
+      }
+      if (auxiliaryCardsHidden) {
+        opacity = 0;
+        scale = 0.4;
+      }
     } else {
       // 更远的卡片 - 继续向后叠放
       const direction = relativeIndex > 0 ? 1 : -1;
@@ -566,28 +663,67 @@ const Dashboard = () => {
       scale = Math.max(0.5, 0.7 - (absIndex - 2) * 0.1);
       opacity = Math.max(0.3, 0.6 - (absIndex - 2) * 0.15);
       zIndex = Math.max(1, 25 - (absIndex - 2) * 5);
+      
+      // 辅助卡片移动和隐藏效果
+      if (cardsMovedDown) {
+        translateX = 0;
+        translateZ = -300 - (absIndex - 2) * 50;
+        rotateY = 0;
+        scale = Math.max(0.3, 0.5 - (absIndex - 2) * 0.1);
+      }
+      if (auxiliaryCardsHidden) {
+        opacity = 0;
+        scale = Math.max(0.2, 0.3 - (absIndex - 2) * 0.1);
+      }
+    }
+
+    // 如果是从登录页来的且动画还没触发，添加初始动画状态
+    if (isFromLogin && !animationTriggered) {
+      const animationDelay = index * 0.15; // 每个卡片延迟0.15秒
+      return {
+        transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale}) translateY(100px) scale(0.8)`,
+        opacity: 0,
+        zIndex,
+        transition: `all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${animationDelay}s`,
+      };
+    }
+    
+    // 过渡动画的时间设置
+    let transitionDuration = '0.8s';
+    if (isTransitioning) {
+      if (cardsMovedDown && !auxiliaryCardsHidden) {
+        transitionDuration = '0.5s'; // 移动阶段
+      } else if (auxiliaryCardsHidden && !mainCardTransitioning) {
+        transitionDuration = '0.3s'; // 隐藏阶段
+      } else if (mainCardTransitioning) {
+        transitionDuration = '0.4s'; // 主卡片过渡阶段
+      }
     }
     
     return {
       transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
       opacity,
       zIndex,
-      transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      transition: `all ${transitionDuration} cubic-bezier(0.25, 0.46, 0.45, 0.94)`,
     };
   };
 
   return (
-    <Box sx={{ 
-      height: '100vh', 
-      width: '100vw',
-      overflow: 'hidden',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      margin: 0,
-      padding: 0
-    }}>
+    <PageTransition>
+      <Box sx={{ 
+        height: '100vh', 
+        width: '100vw',
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        margin: 0,
+        padding: 0,
+        // 主卡片过渡时的模糊效果
+        filter: mainCardTransitioning ? 'blur(8px)' : 'none',
+        transition: 'filter 0.4s ease-in-out',
+      }}>
       {/* 3D轮播容器 */}
       <Box
         sx={{
@@ -667,6 +803,13 @@ const Dashboard = () => {
                    overflow: 'hidden',
                    // 确保卡片可交互
                    pointerEvents: index === currentCardIndex ? 'auto' : 'none',
+                   // 主卡片过渡时的额外效果
+                   ...(index === currentCardIndex && mainCardTransitioning && {
+                     filter: 'blur(4px)',
+                     background: 'rgba(255, 255, 255, 0.15)',
+                     backdropFilter: 'blur(15px)',
+                     boxShadow: '0 12px 40px 0 rgba(31, 38, 135, 0.5)',
+                   }),
                  }}
                >
                  {card.content}
@@ -759,6 +902,7 @@ const Dashboard = () => {
         </Box>
       </Box>
     </Box>
+    </PageTransition>
   );
 };
 

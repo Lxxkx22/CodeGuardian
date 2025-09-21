@@ -13,7 +13,7 @@
   left: 0;
   width: 70%;
   height: 100vh;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   overflow: hidden;
 }
 
@@ -53,7 +53,7 @@
 
 /* 原始代码 */
 .code-original {
-  color: #64748b;
+  color: #1e293b;
   white-space: pre-wrap;
   margin: 0;
   font-family: 'Courier New', monospace;
@@ -82,6 +82,22 @@
 
 .code-block.scanning .vulnerability-line {
   color: #3b82f6 !important; /* 扫描阶段漏洞行也变蓝 */
+}
+
+/* 扫描阶段同时显示漏洞标记 */
+.code-block.scanning .vulnerability-underline {
+  opacity: 1 !important;
+  transform: scaleX(1) !important;
+  transition: all 0.5s ease 0.5s !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.code-block.scanning .vulnerability-mark {
+  opacity: 1 !important;
+  animation: markAppear 0.5s ease 0.8s forwards !important;
+  display: inline-block !important;
+  visibility: visible !important;
 }
 
 @keyframes scanSpread {
@@ -200,6 +216,29 @@
   z-index: 10 !important; /* 提高层级，确保在前景显示 */
 }
 
+/* 分析阶段也显示红色标记 */
+.code-block.analyzing .vulnerability-underline {
+  opacity: 1 !important;
+  transform: scaleX(1) !important;
+  transition: all 0.5s ease 0.1s !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.code-block.analyzing .vulnerability-mark {
+  opacity: 1 !important;
+  animation: markAppear 0.5s ease 0.3s forwards !important;
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+.code-block.analyzing .vulnerability-line {
+  color: #ef4444 !important;
+  transition: color 0.3s ease !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
 @keyframes markAppear {
   0% {
     opacity: 0;
@@ -211,6 +250,54 @@
   100% {
     opacity: 1;
     transform: translateY(-50%) scale(1);
+  }
+}
+
+/* 连接线 - 从代码位置指向终端 */
+.connection-line {
+  position: absolute;
+  top: 50%;
+  left: 45%;
+  width: 35%;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, rgba(59, 130, 246, 0.3));
+  z-index: 5;
+  animation: connectionLineAppear 1s ease-out forwards;
+  transform-origin: left;
+}
+
+.connection-line::before {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: -3px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid #3b82f6;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  animation: arrowPulse 2s ease-in-out infinite 1s;
+}
+
+@keyframes connectionLineAppear {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes arrowPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
   }
 }
 
@@ -255,6 +342,79 @@
   overflow: hidden;
 }
 
+/* 扫描完成图标 */
+.scan-complete-icon {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+}
+
+.scan-complete-icon i {
+  font-size: 24px;
+  color: #10b981;
+  animation: scanCompleteAppear 0.8s ease-out forwards, scanCompletePulse 2s ease-in-out infinite 0.8s;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+}
+
+@keyframes scanCompleteAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  70% {
+    transform: scale(1.2) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes scanCompletePulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.8));
+  }
+}
+
+/* 盾牌图标容器 */
+.shield-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+/* 盾牌图标动画 */
+.shield-icon {
+  font-size: 48px;
+  color: #3b82f6;
+  animation: shieldPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.6));
+  transition: all 0.3s ease;
+}
+
+.shield-icon:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.8));
+}
+
+@keyframes shieldPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.6));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.9));
+  }
+}
+
 /* 登录/注册面板 */
 .auth-panel {
   position: absolute;
@@ -262,14 +422,19 @@
   top: 0;
   width: 30%;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-left: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(25px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.5) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5), 
+              inset 0 2px 0 rgba(255, 255, 255, 0.3),
+              0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+  z-index: 1000 !important;
 }
 
 .auth-container {

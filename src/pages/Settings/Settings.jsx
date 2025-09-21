@@ -171,15 +171,7 @@ const Settings = () => {
       <Typography variant="h1" gutterBottom>
       </Typography>
       
-      <Card sx={{ 
-        mb: 4,
-        maxWidth: '960px',
-        mx: 'auto',
-        backdropFilter: 'blur(10px)',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
-      }}>
+      <Box sx={{ mb: 4 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="设置选项卡">
             <Tab label="个人资料" />
@@ -624,7 +616,7 @@ const Settings = () => {
             </Dialog>
           </Box>
         </TabPanel>
-      </Card>
+      </Box>
     </Box>
   );
 };

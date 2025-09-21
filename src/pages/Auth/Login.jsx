@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AuthLayout from '../../components/AuthLayout/AuthLayout';
+import LoginTransition from '../../components/LoginTransition/LoginTransition';
 import {
   Box,
   TextField,
@@ -27,6 +28,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const [showTransition, setShowTransition] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,8 +46,13 @@ const Login = () => {
       // 调用认证上下文的login方法
       const result = login(formData.username, formData.password);
       
-      // 跳转到首页
-      navigate('/');
+      // 显示过渡动画
+      setShowTransition(true);
+      
+      // 延迟跳转，让动画播放完成
+      setTimeout(() => {
+        navigate('/', { state: { fromLogin: true } });
+      }, 3000); // 3秒后跳转，让所有动画阶段完成
     } catch (err) {
       setError(err.message);
     }
@@ -71,7 +78,52 @@ const Login = () => {
   };
 
   return (
-    <AuthLayout>
+    <>
+      {showTransition ? (
+         <LoginTransition 
+           isActive={true}
+           dashboardContent={
+             <Box sx={{ 
+               height: '100vh', 
+               width: '100vw',
+               overflow: 'hidden',
+               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'center',
+               color: 'white'
+             }}>
+               <Typography variant="h3" sx={{ textAlign: 'center' }}>
+                 欢迎回来！<br />
+                 正在加载您的仪表板...
+               </Typography>
+             </Box>
+           }
+           dockerBarContent={
+             <Box sx={{ 
+               height: '100%',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'space-between',
+               px: 3
+             }}>
+               <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                 CodeGuardian Edu
+               </Typography>
+               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                   {formData.username || 'User'}
+                 </Typography>
+               </Box>
+             </Box>
+           }
+           onComplete={() => {
+             // 动画完成后的回调
+             console.log('过渡动画完成');
+           }}
+         />
+      ) : (
+        <AuthLayout>
       <Box sx={{ mb: 3 }}>
         <Tabs 
           value={activeTab} 
@@ -279,7 +331,9 @@ const Login = () => {
         </Box>
       </Box>
     </AuthLayout>
-  );
+        )}
+      </>
+    );
 };
 
 export default Login;
