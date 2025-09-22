@@ -27,6 +27,7 @@ import {
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import PageTransition from '../../components/PageTransition';
+import StickyNote from '../../components/StickyNote';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -710,6 +711,9 @@ const Dashboard = () => {
 
   return (
     <PageTransition>
+      {/* 便签组件 - 固定在左上角 */}
+      <StickyNote />
+      
       <Box sx={{ 
         height: '100vh', 
         width: '100vw',
